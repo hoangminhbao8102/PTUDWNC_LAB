@@ -22,5 +22,24 @@ namespace TatBlog.Services.Blogs
         Task<IList<CategoryItem>> GetCategoriesAsync(bool showOnMenu = false, CancellationToken cancellationToken = default);
 
         Task<IPagedList<TagItem>> GetPagedTagsAsync(IPagingParams pagingParams, CancellationToken cancellationToken = default);
+
+        Task<Tag> GetTagAsync(string slug, CancellationToken cancellationToken = default);
+
+        Task<IList<TagItem>> GetTagAsync(int Id, CancellationToken cancellationToken = default);
+
+        Task DeleteTagIDAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<Category> GetCategoryAsync(string slug, CancellationToken cancellationToken = default);
+
+        Task<IList<Category>> GetCategoryIDAsync(int Id, CancellationToken cancellationToken = default);
+
+        Task<IList<Category>> GetCategoryUpdateAsync(int id, CancellationToken cancellationToken = default);
+
+        Task GetCategoryDeleleAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<bool> IsCategorySlugExistedAsync(int categoryId, string slug, CancellationToken cancellationToken = default);
+
+        Task<IPagedList<CategoryItem>> GetPagedCategoryAsync(IPagingParams pagingParams, CancellationToken cancellationToken = default);
+
     }
 }

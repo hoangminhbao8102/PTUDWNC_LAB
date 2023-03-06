@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using TatBlog.Core.Contracts;
@@ -93,6 +94,93 @@ namespace TatBlog.Services.Blogs
                 PostCount = x.Posts.Count(p => p.Published)
             });
             return await tagQuery.ToPagedListAsync(pagingParams, cancellationToken);
+        }
+
+        public async Task<Tag> GetTagAsync(string slug, CancellationToken cancellationToken = default)
+        {
+            IQueryable<Tag> tagsQuery = _context.Set<Tag>();
+
+            if (!string.IsNullOrWhiteSpace(slug))
+            {
+                tagsQuery = tagsQuery.Where(x => x.UrlSlug == slug);
+            }
+
+            return await tagsQuery.FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<IList<TagItem>> GetTagAsync(int Id, CancellationToken cancellationToken = default)
+        {
+            IQueryable<Tag> tags = _context.Set<Tag>();
+
+            return await tags.OrderBy(x => x.Name)
+                .Select(x => new TagItem()
+                {
+                    ID = x.ID,
+                    Name = x.Name,
+                    UrlSlug = x.UrlSlug,
+                    Description = x.Description,
+                    PostCount = x.Posts.Count(p => p.Published)
+                }).ToListAsync(cancellationToken);
+        }
+
+        public async Task DeleteTagIDAsync(int id, CancellationToken cancellationToken = default)
+        {
+            await _context.Database
+                .ExecuteSqlRawAsync("DELETE FROM PostTags WHERE TagId = " + id, cancellationToken);
+
+            await _context.Set<Tag>()
+                .Where(x => x.ID == id)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        public async Task<Category> GetCategoryAsync(string slug, CancellationToken cancellationToken = default)
+        {
+            IQueryable<Category> categoriesQuery = _context.Set<Category>();
+
+            if (!string.IsNullOrWhiteSpace(slug))
+            {
+                categoriesQuery = categoriesQuery.Where(x => x.UrlSlug == slug);
+            }
+
+            return await categoriesQuery.FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<IList<Category>> GetCategoryIDAsync(int Id, CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<Category>()
+                .OrderByDescending(c => c.ID)
+                .Take(Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<IList<Category>> GetCategoryUpdateAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<Category>().Where(x => x.ID == id).ToListAsync(cancellationToken);
+        }
+
+        public async Task GetCategoryDeleleAsync(int id, CancellationToken cancellationToken = default)
+        {
+            await _context.Set<Category>().Where(x => x.ID == id).ExecuteDeleteAsync(cancellationToken);
+        }
+
+        public async Task<bool> IsCategorySlugExistedAsync(int categoryId, string slug, CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<Category>()
+                .AnyAsync(x => x.ID != categoryId && x.UrlSlug == slug, cancellationToken);
+        }
+
+        public async Task<IPagedList<CategoryItem>> GetPagedCategoryAsync(IPagingParams pagingParams, CancellationToken cancellationToken = default)
+        {
+            var categoryQuery = _context.Set<Category>().Select(x => new CategoryItem()
+            {
+                Id = x.ID,
+                Name = x.Name,
+                UrlSlug = x.UrlSlug,
+                Description = x.Description,
+                ShowOnMenu = x.ShowOnMenu,
+                PostCount = x.Posts.Count(p => p.Published)
+            });
+            return await categoryQuery.ToPagedListAsync(pagingParams, cancellationToken);
         }
     }
 }
